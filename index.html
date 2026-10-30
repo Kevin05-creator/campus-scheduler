@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Campus Event Scheduling System</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN for Analytics Graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2pdf.js Library for Direct PDF Downloads -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
@@ -17,30 +21,67 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
-  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40 flex-none">
-    <div class="max-w-[1500px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="bg-indigo-600 p-2.5 rounded-xl shadow-md">
-          <i data-lucide="calendar-range" class="w-6 h-6 text-white"></i>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased overflow-x-hidden">
+
+  <!-- TOP HEADER & NAVBAR -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40 flex-none w-full">
+    <div class="max-w-[1500px] mx-auto px-3 sm:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+        <div class="flex items-center space-x-3">
+          <div class="bg-indigo-600 p-2.5 rounded-xl shadow-md shrink-0">
+            <i data-lucide="calendar-range" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-base sm:text-xl font-bold tracking-wide truncate max-w-[240px] sm:max-w-none">Campus Event Scheduling System</h1>
+            <p class="text-[11px] sm:text-xs text-slate-400">Office Queue & Calendar Scheduler</p>
+          </div>
         </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-wide">Campus Event Scheduling System</h1>
-          <p class="text-xs text-slate-400">Office Queue & Calendar Scheduler</p>
+
+        <!-- Mobile Mode Dropdown trigger toggle (shown on small screens in top bar) -->
+        <div class="relative md:hidden">
+          <button onclick="toggleDropdown('dropdown-mode-mobile')" class="bg-slate-800 text-slate-200 border border-slate-700 p-2 rounded-lg" title="Access Mode Settings">
+            <i id="mode-icon-mobile" data-lucide="eye" class="w-5 h-5 text-indigo-400"></i>
+          </button>
+          <div id="dropdown-mode-mobile" class="hidden absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1 z-50">
+            <button onclick="switchRole('VIEWER'); toggleDropdown('dropdown-mode-mobile');" class="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 flex items-center gap-2.5">
+              <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
+              <span>Viewer Mode</span>
+            </button>
+            <button onclick="openAdminLoginModal(); toggleDropdown('dropdown-mode-mobile');" class="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 flex items-center gap-2.5 border-t border-slate-100">
+              <i data-lucide="shield-check" class="w-4 h-4 text-amber-600"></i>
+              <span>Admin Mode</span>
+            </button>
+            <button id="menu-change-pass-mob" onclick="openChangePasswordModal(); toggleDropdown('dropdown-mode-mobile');" class="hidden w-full px-4 py-2 text-left text-xs hover:bg-slate-100 text-amber-700 font-medium flex items-center gap-2.5 border-t border-slate-100">
+              <i data-lucide="key-round" class="w-4 h-4 text-amber-600"></i>
+              <span>Change Password</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="flex items-center space-x-3">
-        <div class="bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2">
-          <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-400 animate-spin"></i>
-          <span>Syncing in <strong id="refresh-timer-count" class="text-indigo-400">60</strong>s</span>
-          <button onclick="renderApp()" title="Refresh Now" class="ml-1 text-slate-400 hover:text-white underline text-[11px]">Sync Now</button>
+
+      <!-- Action Controls (Desktop & Scrollable Mobile Toolbar) -->
+      <div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end overflow-x-auto pb-1 md:pb-0">
+        
+        <!-- Live Auto-Refresh Badge -->
+        <div class="bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-2 shrink-0">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-indigo-400 animate-spin"></i>
+          <span class="hidden sm:inline">Syncing in</span>
+          <span class="sm:hidden">Sync</span>
+          <strong id="refresh-timer-count" class="text-indigo-400">60</strong>s
+          <button onclick="renderApp()" title="Refresh Now" class="ml-1 text-slate-400 hover:text-white underline text-[11px]">Now</button>
         </div>
-        <div class="relative">
-          <button onclick="toggleDropdown('dropdown-export')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition">
+
+        <!-- Export Reports Dropdown -->
+        <div class="relative shrink-0">
+          <button onclick="toggleDropdown('dropdown-export')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
             <i data-lucide="download" class="w-4 h-4 text-indigo-400"></i>
-            <span>Export Reports</span>
+            <span class="hidden sm:inline">Export Reports</span>
+            <span class="sm:hidden">Export</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
           </button>
+          
           <div id="dropdown-export" class="hidden absolute right-0 mt-2 w-52 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1 z-50">
             <button onclick="downloadReport('WEEKLY')" class="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 flex items-center gap-2.5">
               <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
@@ -52,19 +93,28 @@
             </button>
           </div>
         </div>
-        <button onclick="openAnalyticsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition">
+
+        <!-- Analytics Graph Button -->
+        <button onclick="openAnalyticsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition shrink-0">
           <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
-          <span>Analytics Graph</span>
+          <span class="hidden sm:inline">Analytics Graph</span>
+          <span class="sm:hidden">Analytics</span>
         </button>
-        <button onclick="openDoneArchiveModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition">
+
+        <!-- Archive Button -->
+        <button onclick="openDoneArchiveModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition shrink-0">
           <i data-lucide="archive-check" class="w-4 h-4 text-emerald-400"></i>
-          <span>Done Archive</span>
-          <span id="badge-done-count" class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          <span class="hidden sm:inline">Done Archive</span>
+          <span class="sm:hidden">Archive</span>
+          <span id="badge-done-count" class="bg-emerald-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">0</span>
         </button>
-        <div class="relative">
+
+        <!-- Mode Access Dropdown (Desktop) -->
+        <div class="relative hidden md:block shrink-0">
           <button onclick="toggleDropdown('dropdown-mode')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 p-2 rounded-lg transition" title="Access Mode Settings">
             <i id="mode-icon" data-lucide="eye" class="w-5 h-5 text-indigo-400"></i>
           </button>
+
           <div id="dropdown-mode" class="hidden absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1 z-50">
             <button onclick="switchRole('VIEWER')" class="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 flex items-center gap-2.5">
               <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
@@ -80,105 +130,132 @@
             </button>
           </div>
         </div>
+
       </div>
     </div>
   </header>
-  <main class="max-w-[1500px] mx-auto px-6 py-6 flex-1 w-full flex flex-col gap-6">
-    <div id="viewer-notice-banner" class="bg-blue-50 border-l-4 border-blue-500 px-4 py-3 rounded-r-xl shadow-sm flex items-center justify-between">
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-[1500px] mx-auto px-3 sm:px-6 py-4 sm:py-6 flex-1 w-full flex flex-col gap-4 sm:gap-6">
+
+    <!-- READ-ONLY NOTICE BANNER -->
+    <div id="viewer-notice-banner" class="bg-blue-50 border-l-4 border-blue-500 px-3 sm:px-4 py-3 rounded-r-xl shadow-sm flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
-        <p class="text-xs text-blue-800">
-          <strong>Viewer Mode Active:</strong> You have read-only access to schedules and export tools. Switch to Admin mode via the icon menu to add or manage requests.
+        <i data-lucide="info" class="w-5 h-5 text-blue-600 shrink-0"></i>
+        <p class="text-xs text-blue-800 leading-relaxed">
+          <strong>Viewer Mode Active:</strong> Read-only access to schedules & export tools. Switch to Admin mode via the top menu icon to manage requests.
         </p>
       </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <!-- METRICS CARDS GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Event (Priority #1)</p>
-          <h3 id="stat-active-event" class="text-base font-bold text-slate-900 truncate max-w-[200px]">None Active</h3>
-          <p id="stat-active-office" class="text-xs text-indigo-600 font-medium truncate max-w-[200px]">--</p>
+        <div class="overflow-hidden pr-2">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Event (#1)</p>
+          <h3 id="stat-active-event" class="text-sm sm:text-base font-bold text-slate-900 truncate">None Active</h3>
+          <p id="stat-active-office" class="text-xs text-indigo-600 font-medium truncate">--</p>
         </div>
-        <div class="bg-indigo-50 p-3 rounded-xl text-indigo-600">
+        <div class="bg-indigo-50 p-3 rounded-xl text-indigo-600 shrink-0">
           <i data-lucide="play-circle" class="w-6 h-6"></i>
         </div>
       </div>
+
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Queued Requests</p>
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Queued Requests</p>
           <h3 id="stat-queue-count" class="text-2xl font-bold text-slate-900">0</h3>
           <p class="text-xs text-amber-600 font-medium">Auto-promotes on finish</p>
         </div>
-        <div class="bg-amber-50 p-3 rounded-xl text-amber-600">
+        <div class="bg-amber-50 p-3 rounded-xl text-amber-600 shrink-0">
           <i data-lucide="list-ordered" class="w-6 h-6"></i>
         </div>
       </div>
+
       <div onclick="openDoneArchiveModal()" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-300 transition">
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Events</p>
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Completed Events</p>
           <h3 id="stat-completed-count" class="text-2xl font-bold text-slate-900">0</h3>
           <p class="text-xs text-emerald-600 font-medium hover:underline">Click to view history</p>
         </div>
-        <div class="bg-emerald-50 p-3 rounded-xl text-emerald-600">
+        <div class="bg-emerald-50 p-3 rounded-xl text-emerald-600 shrink-0">
           <i data-lucide="check-circle-2" class="w-6 h-6"></i>
         </div>
       </div>
+
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Filtered Month Total</p>
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Filtered Month Total</p>
           <h3 id="stat-month-count" class="text-2xl font-bold text-slate-900">0</h3>
           <p class="text-xs text-slate-500">Includes active queue</p>
         </div>
-        <div class="bg-sky-50 p-3 rounded-xl text-sky-600">
+        <div class="bg-sky-50 p-3 rounded-xl text-sky-600 shrink-0">
           <i data-lucide="calendar" class="w-6 h-6"></i>
         </div>
       </div>
     </div>
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-      <div class="flex flex-1 w-full md:w-auto items-center gap-3">
-        <div class="relative flex-1">
+
+    <!-- TOOLBAR CONTROLS & YEAR SELECTOR -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div class="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3 flex-1">
+        <div class="relative w-full sm:flex-1">
           <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
           <input type="text" id="input-search" oninput="renderApp()" placeholder="Search Office, Event Title, or Venue..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-        <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 rounded-lg p-1">
-          <label class="text-[11px] font-semibold text-slate-500 px-2">Month View:</label>
-          <input type="month" id="input-month-filter" onchange="renderApp()" class="bg-white border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <!-- Month & Year Selector -->
+        <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 rounded-lg p-1 w-full sm:w-auto justify-between sm:justify-start">
+          <label class="text-[11px] font-semibold text-slate-500 px-2 whitespace-nowrap">Month View:</label>
+          <input type="month" id="input-month-filter" onchange="renderApp()" class="bg-white border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto">
         </div>
       </div>
+
       <div class="flex items-center gap-3 w-full md:w-auto justify-end">
-        <button id="btn-add-request" onclick="openRequestModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-lg font-medium flex items-center gap-2 shadow-sm transition">
+        <button id="btn-add-request" onclick="openRequestModal()" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-lg font-medium flex items-center justify-center gap-2 shadow-sm transition">
           <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Request
         </button>
       </div>
     </div>
+
+    <!-- DASHBOARD WORKSPACE GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-      <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col">
-        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+      
+      <!-- CALENDAR MONTH VIEW (LEFT 2 COLS) -->
+      <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
           <div class="flex items-center gap-2">
             <i data-lucide="calendar-days" class="w-5 h-5 text-indigo-600"></i>
             <h2 id="calendar-month-title" class="font-bold text-slate-800 text-base">Calendar Month View</h2>
           </div>
-          <p class="text-xs text-slate-400">*Click date cell for daily event list</p>
+          <p class="text-[11px] sm:text-xs text-slate-400">*Tap date cell for daily event list</p>
         </div>
-        <div class="grid grid-cols-7 gap-2 text-center font-bold text-xs text-slate-400 mb-2">
+
+        <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center font-bold text-[11px] sm:text-xs text-slate-400 mb-2">
           <div>Sun</div><div>Mon</div><div>Tue</div>
           <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
         </div>
-        <div id="calendar-days-grid" class="grid grid-cols-7 gap-2 flex-1 min-h-[420px]"></div>
+
+        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2 flex-1 min-h-[360px] sm:min-h-[420px]"></div>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col">
-        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+
+      <!-- ACTIVE SCHEDULE QUEUE (RIGHT 1 COL) -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
           <div class="flex items-center gap-2">
             <i data-lucide="clock" class="w-5 h-5 text-indigo-600"></i>
             <h2 class="font-bold text-slate-800 text-base">Active Schedule Queue</h2>
           </div>
-          <span class="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-0.5 rounded-full border border-indigo-200">Sequential Processing</span>
+          <span class="text-[10px] sm:text-xs bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-0.5 rounded-full border border-indigo-200 w-fit">Sequential Processing</span>
         </div>
+
         <div id="queue-event-list" class="space-y-3 overflow-y-auto max-h-[580px] flex-1 pr-1"></div>
       </div>
+
     </div>
   </main>
-  <div id="modal-admin-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+
+  <!-- MODAL: SECURE ADMIN LOGIN -->
+  <div id="modal-admin-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
     <div class="bg-white rounded-xl max-w-sm w-full shadow-2xl overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
         <h3 class="font-bold text-sm flex items-center gap-2">
@@ -186,6 +263,7 @@
         </h3>
         <button onclick="closeAdminLoginModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
+
       <form onsubmit="handleAdminLoginSubmit(event)" class="p-5 space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Enter Admin Password</label>
@@ -196,6 +274,7 @@
             </button>
           </div>
         </div>
+
         <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
           <button type="button" onclick="closeAdminLoginModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-xs text-slate-600 font-medium hover:bg-slate-50">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium shadow-sm">Login to Admin</button>
@@ -203,76 +282,89 @@
       </form>
     </div>
   </div>
-  <div id="modal-analytics" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+
+  <!-- MODAL: ANALYTICS GRAPH -->
+  <div id="modal-analytics" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
     <div class="bg-white rounded-xl max-w-4xl w-full shadow-2xl overflow-hidden">
-      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-400"></i>
-          <div>
-            <h3 class="font-bold text-base">Request Analytics & Frequency Graphs</h3>
-            <p class="text-xs text-slate-400">Visual comparison across months and days of the week</p>
+      <div class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex justify-between items-center gap-2">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-400 shrink-0"></i>
+          <div class="overflow-hidden">
+            <h3 class="font-bold text-sm sm:text-base truncate">Request Analytics & Graphs</h3>
+            <p class="text-[11px] text-slate-400 truncate">Visual frequency comparison across months and days</p>
           </div>
         </div>
-        <button onclick="closeAnalyticsModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeAnalyticsModal()" class="text-slate-400 hover:text-white shrink-0"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <div class="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[80vh] overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center gap-3">
-            <div class="bg-indigo-600 text-white p-3 rounded-lg"><i data-lucide="calendar" class="w-6 h-6"></i></div>
-            <div>
-              <p class="text-xs font-semibold text-indigo-800 uppercase">Busiest Month</p>
-              <h4 id="peak-month-label" class="text-lg font-bold text-indigo-900">--</h4>
+            <div class="bg-indigo-600 text-white p-3 rounded-lg shrink-0"><i data-lucide="calendar" class="w-6 h-6"></i></div>
+            <div class="overflow-hidden">
+              <p class="text-[11px] font-semibold text-indigo-800 uppercase">Busiest Month</p>
+              <h4 id="peak-month-label" class="text-base sm:text-lg font-bold text-indigo-900 truncate">--</h4>
             </div>
           </div>
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3">
-            <div class="bg-amber-600 text-white p-3 rounded-lg"><i data-lucide="clock" class="w-6 h-6"></i></div>
-            <div>
-              <p class="text-xs font-semibold text-amber-800 uppercase">Peak Request Day</p>
-              <h4 id="peak-day-label" class="text-lg font-bold text-amber-900">--</h4>
+            <div class="bg-amber-600 text-white p-3 rounded-lg shrink-0"><i data-lucide="clock" class="w-6 h-6"></i></div>
+            <div class="overflow-hidden">
+              <p class="text-[11px] font-semibold text-amber-800 uppercase">Peak Request Day</p>
+              <h4 id="peak-day-label" class="text-base sm:text-lg font-bold text-amber-900 truncate">--</h4>
             </div>
           </div>
         </div>
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+
+        <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+          <h4 class="text-xs sm:text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
             <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-600"></i> Monthly Request Volume
           </h4>
-          <div class="h-64 relative">
+          <div class="h-52 sm:h-64 relative">
             <canvas id="monthlyChart"></canvas>
           </div>
         </div>
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+
+        <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+          <h4 class="text-xs sm:text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
             <i data-lucide="pie-chart" class="w-4 h-4 text-amber-600"></i> Request Distribution by Day of Week
           </h4>
-          <div class="h-64 relative">
+          <div class="h-52 sm:h-64 relative">
             <canvas id="weeklyChart"></canvas>
           </div>
         </div>
       </div>
-      <div class="bg-slate-100 px-6 py-3 border-t border-slate-200 text-right">
+
+      <div class="bg-slate-100 px-4 sm:px-6 py-3 border-t border-slate-200 text-right">
         <button onclick="closeAnalyticsModal()" class="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-medium">Close Analytics</button>
       </div>
     </div>
   </div>
-  <div id="modal-request" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+
+  <!-- MODAL: ADD / EDIT REQUEST WITH CATEGORY & PRIORITY -->
+  <div id="modal-request" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+    <div class="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center shrink-0">
         <h3 id="modal-form-title" class="font-bold text-sm flex items-center gap-2">
           <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-400"></i> New Event Request
         </h3>
         <button onclick="closeRequestModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <form id="form-request" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4">
+
+      <form id="form-request" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
         <input type="hidden" id="form-event-id">
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Requesting Office / Department</label>
           <input type="text" id="form-office" required placeholder="e.g., MIS Office, HRDO, Registrar" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Event Title / Description</label>
           <input type="text" id="form-title" required placeholder="e.g., Annual Cybersecurity Seminar" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
-        <div class="grid grid-cols-2 gap-3">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- EVENT CATEGORY -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Event Category / Format</label>
             <select id="form-category" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
@@ -281,6 +373,7 @@
               <option value="VIRTUAL">💻 Virtual / Online Only</option>
             </select>
           </div>
+          <!-- PRIORITY LEVEL -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Priority Level</label>
             <select id="form-priority" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
@@ -291,7 +384,9 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+
+        <!-- DATE & TIME DURATION GRID -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Event Date</label>
             <input type="date" id="form-date" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
@@ -305,6 +400,7 @@
             <input type="time" id="form-time-end" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Location / Venue Area</label>
           <select id="form-venue-select" onchange="handleVenueChange()" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
@@ -325,20 +421,25 @@
             <option value="VPSSSS Conference Room">VPSSSS Conference Room</option>
             <option value="CUSTOM">Custom / Other Venue (Type Manually)...</option>
           </select>
+          
           <input type="text" id="form-venue-custom" placeholder="Type specific room or manual area name..." class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none mt-2 hidden">
         </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Requirements / Notes</label>
           <textarea id="form-notes" rows="2" placeholder="Microphones, projector, sound system..." class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
         </div>
-        <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+
+        <div class="pt-2 flex justify-end gap-2 border-t border-slate-100 shrink-0">
           <button type="button" onclick="closeRequestModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-xs text-slate-600 font-medium hover:bg-slate-50">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium shadow-sm">Save Request</button>
         </div>
       </form>
     </div>
   </div>
-  <div id="modal-change-password" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+
+  <!-- MODAL: CHANGE ADMIN PASSWORD -->
+  <div id="modal-change-password" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
     <div class="bg-white rounded-xl max-w-sm w-full shadow-2xl overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
         <h3 class="font-bold text-sm flex items-center gap-2">
@@ -346,6 +447,7 @@
         </h3>
         <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
+
       <form id="form-change-password" onsubmit="handleChangePasswordSubmit(event)" class="p-5 space-y-3.5">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Current Password</label>
@@ -356,6 +458,7 @@
             </button>
           </div>
         </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">New Password</label>
           <div class="relative">
@@ -365,6 +468,7 @@
             </button>
           </div>
         </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Confirm New Password</label>
           <div class="relative">
@@ -374,6 +478,7 @@
             </button>
           </div>
         </div>
+
         <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
           <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-xs text-slate-600 font-medium hover:bg-slate-50">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium shadow-sm">Update Password</button>
@@ -381,43 +486,54 @@
       </form>
     </div>
   </div>
-  <div id="modal-day-details" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
-      <div class="bg-indigo-900 text-white px-5 py-3.5 flex justify-between items-center">
+
+  <!-- MODAL: DAY DETAILS BREAKDOWN -->
+  <div id="modal-day-details" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+    <div class="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-indigo-900 text-white px-5 py-3.5 flex justify-between items-center shrink-0">
         <div>
           <h3 id="modal-day-title" class="font-bold text-sm">Schedule Details</h3>
           <p id="modal-day-subtitle" class="text-xs text-indigo-200"></p>
         </div>
         <button onclick="closeDayModal()" class="text-slate-300 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div id="modal-day-content" class="p-5 space-y-3 max-h-[380px] overflow-y-auto"></div>
-      <div class="bg-slate-50 px-5 py-2.5 border-t border-slate-200 text-right">
+
+      <div id="modal-day-content" class="p-4 sm:p-5 space-y-3 max-h-[380px] overflow-y-auto flex-1"></div>
+
+      <div class="bg-slate-50 px-5 py-2.5 border-t border-slate-200 text-right shrink-0">
         <button onclick="closeDayModal()" class="px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-medium">Close</button>
       </div>
     </div>
   </div>
-  <div id="modal-done-archive" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-xl max-w-xl w-full shadow-2xl overflow-hidden">
-      <div class="bg-emerald-800 text-white px-5 py-3.5 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <i data-lucide="archive-check" class="w-5 h-5 text-emerald-300"></i>
-          <div>
-            <h3 class="font-bold text-sm">Done Events Archive</h3>
-            <p class="text-xs text-emerald-200">Historical record of all completed requests</p>
+
+  <!-- MODAL: DONE ARCHIVE HISTORY -->
+  <div id="modal-done-archive" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+    <div class="bg-white rounded-xl max-w-xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-emerald-800 text-white px-5 py-3.5 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <i data-lucide="archive-check" class="w-5 h-5 text-emerald-300 shrink-0"></i>
+          <div class="overflow-hidden">
+            <h3 class="font-bold text-sm truncate">Done Events Archive</h3>
+            <p class="text-xs text-emerald-200 truncate">Historical record of completed requests</p>
           </div>
         </div>
-        <button onclick="closeDoneArchiveModal()" class="text-emerald-200 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <button onclick="closeDoneArchiveModal()" class="text-emerald-200 hover:text-white shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div class="p-3 bg-slate-50 border-b border-slate-200">
+
+      <div class="p-3 bg-slate-50 border-b border-slate-200 shrink-0">
         <input type="text" id="archive-search-input" oninput="renderArchiveList()" placeholder="Filter completed events..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
       </div>
-      <div id="archive-list-container" class="p-5 space-y-3 max-h-[350px] overflow-y-auto"></div>
-      <div class="bg-slate-100 px-5 py-3 border-t border-slate-200 flex justify-between items-center">
+
+      <div id="archive-list-container" class="p-4 sm:p-5 space-y-3 max-h-[350px] overflow-y-auto flex-1"></div>
+
+      <div class="bg-slate-100 px-5 py-3 border-t border-slate-200 flex justify-between items-center shrink-0">
         <span id="archive-total-text" class="text-xs font-medium text-slate-500">Total: 0 completed events</span>
         <button onclick="closeDoneArchiveModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-medium">Close</button>
       </div>
     </div>
   </div>
+
+  <!-- PRINT REPORT TEMPLATE -->
   <div id="printable-area" style="display: none;" class="p-8 bg-white text-slate-900 font-sans">
     <div class="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-end">
       <div>
@@ -429,6 +545,7 @@
         <p>System Status: ONLINE</p>
       </div>
     </div>
+
     <table class="w-full text-left border-collapse border border-slate-300 text-xs">
       <thead>
         <tr class="bg-slate-100 text-slate-800 border-b border-slate-300">
@@ -444,16 +561,20 @@
       </thead>
       <tbody id="print-table-body"></tbody>
     </table>
+
     <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between text-xs text-slate-500">
       <p>Prepared by: ___________________________</p>
       <p>Approved by: ___________________________</p>
     </div>
   </div>
+
+  <!-- JAVASCRIPT ENGINE -->
   <script>
     let adminPassword = localStorage.getItem("app_admin_pass") || "pnu2k26*";
     let currentRole = "VIEWER"; 
     let chartInstanceMonthly = null;
     let chartInstanceWeekly = null;
+
     const PRESET_VENUES = [
       "MB Auditorium", "AV Theater", "HRD Auditorium", "HRD Amphitheater",
       "PNU Quadrangle and Grasslandia", "BPS Auditorium", "PNU Gymnasium",
@@ -461,17 +582,21 @@
       "VPREQA Conference Room", "VPA Conference Room", "VPFA Conference Room",
       "VPSSSS Conference Room"
     ];
+
     const PRIORITY_MAP = {
       LOW: { label: "Low", bg: "bg-sky-50 text-sky-700 border-sky-200" },
       MEDIUM: { label: "Medium", bg: "bg-amber-50 text-amber-700 border-amber-200" },
       HIGH: { label: "High", bg: "bg-orange-50 text-orange-700 border-orange-200" },
       URGENT: { label: "Urgent", bg: "bg-rose-50 text-rose-700 border-rose-200 font-bold" }
     };
+
     const CATEGORY_MAP = {
       IN_PERSON: { label: "In-Person", badge: "bg-slate-100 text-slate-700 border-slate-200" },
       HYBRID: { label: "Hybrid", badge: "bg-indigo-50 text-indigo-700 border-indigo-200" },
       VIRTUAL: { label: "Virtual", badge: "bg-teal-50 text-teal-700 border-teal-200" }
     };
+
+    // AUTO REFRESH LOOP TIMER
     let countdownSecs = 60;
     setInterval(() => {
       countdownSecs--;
@@ -482,6 +607,7 @@
       const timerEl = document.getElementById("refresh-timer-count");
       if (timerEl) timerEl.innerText = countdownSecs;
     }, 1000);
+
     let eventsData = [
       {
         id: "evt-101",
@@ -554,6 +680,7 @@
         completed: false
       }
     ];
+
     if (localStorage.getItem("app_events_db_v12")) {
       try {
         eventsData = JSON.parse(localStorage.getItem("app_events_db_v12"));
@@ -561,9 +688,11 @@
         console.error("Storage load error", e);
       }
     }
+
     function saveToStorage() {
       localStorage.setItem("app_events_db_v12", JSON.stringify(eventsData));
     }
+
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       const now = new Date();
@@ -571,10 +700,12 @@
       document.getElementById("input-month-filter").value = monthStr;
       renderApp();
     });
+
     function toggleDropdown(id) {
       const dropdown = document.getElementById(id);
       dropdown.classList.toggle("hidden");
     }
+
     function togglePasswordVisibility(inputId, eyeIconId) {
       const input = document.getElementById(inputId);
       const eyeIcon = document.getElementById(eyeIconId);
@@ -587,21 +718,32 @@
       }
       lucide.createIcons();
     }
+
     function switchRole(role) {
       document.getElementById("dropdown-mode").classList.add("hidden");
+      const mobDropdown = document.getElementById("dropdown-mode-mobile");
+      if (mobDropdown) mobDropdown.classList.add("hidden");
+
       if (role === 'VIEWER') {
         currentRole = 'VIEWER';
         renderApp();
       }
     }
+
     function openAdminLoginModal() {
-      document.getElementById("dropdown-mode").classList.add("hidden");
+      const drop1 = document.getElementById("dropdown-mode");
+      if (drop1) drop1.classList.add("hidden");
+      const drop2 = document.getElementById("dropdown-mode-mobile");
+      if (drop2) drop2.classList.add("hidden");
+
       document.getElementById("input-admin-pass").value = "";
       document.getElementById("modal-admin-login").classList.remove("hidden");
     }
+
     function closeAdminLoginModal() {
       document.getElementById("modal-admin-login").classList.add("hidden");
     }
+
     function handleAdminLoginSubmit(e) {
       e.preventDefault();
       const pass = document.getElementById("input-admin-pass").value;
@@ -613,15 +755,20 @@
         alert("Incorrect password! Access denied.");
       }
     }
+
     function renderApp() {
       updateRoleUI();
+      
       const activeEvents = eventsData
         .filter(e => !e.completed)
         .sort((a, b) => a.timestamp - b.timestamp);
+
       const doneEvents = eventsData.filter(e => e.completed);
+
       document.getElementById("stat-queue-count").innerText = Math.max(0, activeEvents.length - 1);
       document.getElementById("stat-completed-count").innerText = doneEvents.length;
       document.getElementById("badge-done-count").innerText = doneEvents.length;
+
       if (activeEvents.length > 0) {
         document.getElementById("stat-active-event").innerText = activeEvents[0].title;
         document.getElementById("stat-active-office").innerText = activeEvents[0].office;
@@ -629,8 +776,10 @@
         document.getElementById("stat-active-event").innerText = "None Active";
         document.getElementById("stat-active-office").innerText = "--";
       }
+
       const searchQuery = document.getElementById("input-search").value.toLowerCase();
       const monthFilter = document.getElementById("input-month-filter").value;
+
       const filteredActiveEvents = activeEvents.filter(e => {
         const matchesSearch = e.office.toLowerCase().includes(searchQuery) ||
                               e.title.toLowerCase().includes(searchQuery) ||
@@ -638,33 +787,55 @@
         const matchesMonth = monthFilter ? e.date.startsWith(monthFilter) : true;
         return matchesSearch && matchesMonth;
       });
+
       document.getElementById("stat-month-count").innerText = filteredActiveEvents.length;
+
       renderQueueList(activeEvents, searchQuery);
       renderCalendar(monthFilter, activeEvents);
       lucide.createIcons();
     }
+
     function updateRoleUI() {
       const noticeBanner = document.getElementById("viewer-notice-banner");
       const addBtn = document.getElementById("btn-add-request");
       const changePassBtn = document.getElementById("menu-change-pass");
+      const changePassMob = document.getElementById("menu-change-pass-mob");
       const modeIcon = document.getElementById("mode-icon");
+      const modeIconMob = document.getElementById("mode-icon-mobile");
+
       if (currentRole === 'ADMIN') {
-        modeIcon.setAttribute("data-lucide", "shield-check");
-        modeIcon.className = "w-5 h-5 text-amber-400";
+        if (modeIcon) {
+          modeIcon.setAttribute("data-lucide", "shield-check");
+          modeIcon.className = "w-5 h-5 text-amber-400";
+        }
+        if (modeIconMob) {
+          modeIconMob.setAttribute("data-lucide", "shield-check");
+          modeIconMob.className = "w-5 h-5 text-amber-400";
+        }
         noticeBanner.classList.add("hidden");
         addBtn.classList.remove("hidden");
-        changePassBtn.classList.remove("hidden");
+        if (changePassBtn) changePassBtn.classList.remove("hidden");
+        if (changePassMob) changePassMob.classList.remove("hidden");
       } else {
-        modeIcon.setAttribute("data-lucide", "eye");
-        modeIcon.className = "w-5 h-5 text-indigo-400";
+        if (modeIcon) {
+          modeIcon.setAttribute("data-lucide", "eye");
+          modeIcon.className = "w-5 h-5 text-indigo-400";
+        }
+        if (modeIconMob) {
+          modeIconMob.setAttribute("data-lucide", "eye");
+          modeIconMob.className = "w-5 h-5 text-indigo-400";
+        }
         noticeBanner.classList.remove("hidden");
         addBtn.classList.add("hidden");
-        changePassBtn.classList.add("hidden");
+        if (changePassBtn) changePassBtn.classList.add("hidden");
+        if (changePassMob) changePassMob.classList.add("hidden");
       }
     }
+
     function renderQueueList(activeEvents, searchQuery) {
       const queueContainer = document.getElementById("queue-event-list");
       queueContainer.innerHTML = "";
+
       if (activeEvents.length === 0) {
         queueContainer.innerHTML = `
           <div class="text-center py-12 text-slate-400">
@@ -674,26 +845,31 @@
         `;
         return;
       }
+
       activeEvents.forEach((evt, index) => {
         const isFirst = index === 0;
         const priorityNumber = index + 1;
+
         if (searchQuery && !evt.office.toLowerCase().includes(searchQuery) &&
             !evt.title.toLowerCase().includes(searchQuery) &&
             !evt.venue.toLowerCase().includes(searchQuery)) {
           return;
         }
+
         const card = document.createElement("div");
-        card.className = `p-4 rounded-xl border transition flex flex-col gap-2 ${
+        card.className = `p-3.5 sm:p-4 rounded-xl border transition flex flex-col gap-2 ${
           isFirst 
             ? "bg-indigo-50/80 border-indigo-200 shadow-sm" 
             : "bg-slate-50/80 border-slate-200 hover:bg-slate-100/80"
         }`;
+
         const timeStr = evt.timeEnd ? `${evt.timeStart || evt.time} - ${evt.timeEnd}` : (evt.timeStart || evt.time);
         const prioInfo = PRIORITY_MAP[evt.priority || "MEDIUM"];
         const catInfo = CATEGORY_MAP[evt.category || "HYBRID"];
+
         card.innerHTML = `
           <div class="flex items-start justify-between gap-2">
-            <div>
+            <div class="overflow-hidden pr-1">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   isFirst ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-700"
@@ -707,11 +883,12 @@
                   ${prioInfo.label} Priority
                 </span>
               </div>
-              <h4 class="font-bold text-sm text-slate-900 mt-1.5">${evt.title}</h4>
-              <p class="text-xs text-indigo-700 font-medium">${evt.office}</p>
+              <h4 class="font-bold text-sm text-slate-900 mt-1.5 truncate">${evt.title}</h4>
+              <p class="text-xs text-indigo-700 font-medium truncate">${evt.office}</p>
             </div>
+
             ${currentRole === 'ADMIN' ? `
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-1 shrink-0">
                 <button onclick="markEventDone('${evt.id}')" title="Mark as Done" class="p-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition">
                   <i data-lucide="check" class="w-4 h-4"></i>
                 </button>
@@ -724,23 +901,27 @@
               </div>
             ` : ''}
           </div>
-          <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1 border-t border-slate-200/60">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-600 pt-2 border-t border-slate-200/60">
             <div class="flex items-center gap-1">
-              <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
-              <span>${evt.date} (${timeStr})</span>
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+              <span class="truncate">${evt.date} (${timeStr})</span>
             </div>
-            <div class="flex items-center gap-1 truncate">
-              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+            <div class="flex items-center gap-1">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
               <span class="truncate">${evt.venue}</span>
             </div>
           </div>
         `;
+
         queueContainer.appendChild(card);
       });
     }
+
     function renderCalendar(monthStr, activeEvents) {
       const grid = document.getElementById("calendar-days-grid");
       grid.innerHTML = "";
+
       let year, month;
       if (monthStr) {
         [year, month] = monthStr.split("-").map(Number);
@@ -750,45 +931,54 @@
         year = d.getFullYear();
         month = d.getMonth();
       }
+
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       document.getElementById("calendar-month-title").innerText = `${monthNames[month]} ${year}`;
+
       const firstDayIndex = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
+
       for (let i = 0; i < firstDayIndex; i++) {
         const emptyCell = document.createElement("div");
-        emptyCell.className = "min-h-[70px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200";
+        emptyCell.className = "min-h-[56px] sm:min-h-[70px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200";
         grid.appendChild(emptyCell);
       }
+
       for (let day = 1; day <= totalDays; day++) {
         const dateFormatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayEvents = activeEvents.filter(e => e.date === dateFormatted);
+
         const cell = document.createElement("div");
         cell.onclick = () => openDayModal(dateFormatted, dayEvents);
-        cell.className = `min-h-[70px] p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition ${
+        cell.className = `min-h-[56px] sm:min-h-[70px] p-1.5 sm:p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition ${
           dayEvents.length > 0 
             ? "bg-white border-indigo-200 hover:border-indigo-500 shadow-sm" 
             : "bg-white border-slate-200 hover:bg-slate-50"
         }`;
+
         let eventsHTML = "";
         if (dayEvents.length > 0) {
           eventsHTML = `
             <div class="space-y-1 overflow-hidden">
-              <span class="inline-block text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded-md w-full truncate">
-                ${dayEvents.length} Event${dayEvents.length > 1 ? 's' : ''}
+              <span class="inline-block text-[9px] sm:text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded-md w-full truncate text-center">
+                ${dayEvents.length} Evt${dayEvents.length > 1 ? 's' : ''}
               </span>
             </div>
           `;
         }
+
         cell.innerHTML = `
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold ${dayEvents.length > 0 ? "text-indigo-600" : "text-slate-700"}">${day}</span>
-            ${dayEvents.length > 0 ? '<span class="w-2 h-2 rounded-full bg-indigo-600"></span>' : ''}
+            ${dayEvents.length > 0 ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600"></span>' : ''}
           </div>
           ${eventsHTML}
         `;
+
         grid.appendChild(cell);
       }
     }
+
     function handleVenueChange() {
       const select = document.getElementById("form-venue-select");
       const customInput = document.getElementById("form-venue-custom");
@@ -802,19 +992,24 @@
         customInput.value = "";
       }
     }
+
     function openAnalyticsModal() {
       document.getElementById("modal-analytics").classList.remove("hidden");
       renderAnalyticsGraphs();
     }
+
     function closeAnalyticsModal() {
       document.getElementById("modal-analytics").classList.add("hidden");
     }
+
     function renderAnalyticsGraphs() {
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const fullMonthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
       const monthlyCounts = new Array(12).fill(0);
       const dayOfWeekCounts = new Array(7).fill(0);
+
       eventsData.forEach(evt => {
         if (!evt.date) return;
         const d = new Date(evt.date);
@@ -823,22 +1018,28 @@
           dayOfWeekCounts[d.getDay()] += 1;
         }
       });
+
       let maxMonthIndex = 0;
       monthlyCounts.forEach((count, i) => {
         if (count > monthlyCounts[maxMonthIndex]) maxMonthIndex = i;
       });
+
       let maxDayIndex = 0;
       dayOfWeekCounts.forEach((count, i) => {
         if (count > dayOfWeekCounts[maxDayIndex]) maxDayIndex = i;
       });
+
       document.getElementById("peak-month-label").innerText = monthlyCounts[maxMonthIndex] > 0 
-        ? `${fullMonthNames[maxMonthIndex]} (${monthlyCounts[maxMonthIndex]} requests)`
+        ? `${fullMonthNames[maxMonthIndex]} (${monthlyCounts[maxMonthIndex]} req)`
         : "No Data";
+
       document.getElementById("peak-day-label").innerText = dayOfWeekCounts[maxDayIndex] > 0 
-        ? `${dayNames[maxDayIndex]}s (${dayOfWeekCounts[maxDayIndex]} requests)`
+        ? `${dayNames[maxDayIndex]}s (${dayOfWeekCounts[maxDayIndex]} req)`
         : "No Data";
+
       const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
       if (chartInstanceMonthly) chartInstanceMonthly.destroy();
+
       chartInstanceMonthly = new Chart(ctxMonthly, {
         type: 'bar',
         data: {
@@ -860,8 +1061,10 @@
           }
         }
       });
+
       const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
       if (chartInstanceWeekly) chartInstanceWeekly.destroy();
+
       chartInstanceWeekly = new Chart(ctxWeekly, {
         type: 'bar',
         data: {
@@ -884,9 +1087,11 @@
         }
       });
     }
+
     function markEventDone(id) {
       if (currentRole !== 'ADMIN') return;
       if (!confirm("Mark this request as COMPLETED? It will be archived and auto-promote the next request.")) return;
+
       const evt = eventsData.find(e => e.id === id);
       if (evt) {
         evt.completed = true;
@@ -896,18 +1101,23 @@
         renderApp();
       }
     }
+
     function deleteEvent(id) {
       if (currentRole !== 'ADMIN') return;
       if (!confirm("Are you sure you want to delete this event request?")) return;
+
       eventsData = eventsData.filter(e => e.id !== id);
       saveToStorage();
       renderApp();
     }
+
     function openRequestModal(id = null) {
       if (currentRole !== 'ADMIN') return;
+
       document.getElementById("modal-request").classList.remove("hidden");
       const venueSelect = document.getElementById("form-venue-select");
       const customInput = document.getElementById("form-venue-custom");
+
       if (id) {
         const evt = eventsData.find(e => e.id === id);
         if (evt) {
@@ -921,6 +1131,7 @@
           document.getElementById("form-time-start").value = evt.timeStart || evt.time || "";
           document.getElementById("form-time-end").value = evt.timeEnd || "";
           document.getElementById("form-notes").value = evt.notes || "";
+
           if (PRESET_VENUES.includes(evt.venue)) {
             venueSelect.value = evt.venue;
             customInput.classList.add("hidden");
@@ -944,36 +1155,48 @@
         customInput.required = false;
       }
     }
+
     function closeRequestModal() {
       document.getElementById("modal-request").classList.add("hidden");
     }
+
     function openChangePasswordModal() {
       if (currentRole !== 'ADMIN') return;
-      document.getElementById("dropdown-mode").classList.add("hidden");
+      const drop1 = document.getElementById("dropdown-mode");
+      if (drop1) drop1.classList.add("hidden");
+      const drop2 = document.getElementById("dropdown-mode-mobile");
+      if (drop2) drop2.classList.add("hidden");
+
       document.getElementById("form-change-password").reset();
       document.getElementById("modal-change-password").classList.remove("hidden");
     }
+
     function closeChangePasswordModal() {
       document.getElementById("modal-change-password").classList.add("hidden");
     }
+
     function handleChangePasswordSubmit(e) {
       e.preventDefault();
       const curr = document.getElementById("input-curr-pass").value;
       const newPass = document.getElementById("input-new-pass").value;
       const confirmPass = document.getElementById("input-confirm-pass").value;
+
       if (curr !== adminPassword) {
         alert("Current password is incorrect!");
         return;
       }
+
       if (newPass !== confirmPass) {
         alert("New passwords do not match!");
         return;
       }
+
       adminPassword = newPass;
       localStorage.setItem("app_admin_pass", newPass);
       alert("Admin password updated successfully!");
       closeChangePasswordModal();
     }
+
     function handleFormSubmit(e) {
       e.preventDefault();
       const id = document.getElementById("form-event-id").value;
@@ -984,10 +1207,13 @@
       const date = document.getElementById("form-date").value;
       const timeStart = document.getElementById("form-time-start").value;
       const timeEnd = document.getElementById("form-time-end").value;
+      
       const venueSelect = document.getElementById("form-venue-select").value;
       const customInput = document.getElementById("form-venue-custom").value;
       const venue = venueSelect === "CUSTOM" ? customInput : venueSelect;
+
       const notes = document.getElementById("form-notes").value;
+
       if (id) {
         const evt = eventsData.find(e => e.id === id);
         if (evt) {
@@ -1018,15 +1244,19 @@
         };
         eventsData.push(newEvt);
       }
+
       saveToStorage();
       closeRequestModal();
       renderApp();
     }
+
     function openDayModal(dateStr, dayEvents) {
       document.getElementById("modal-day-title").innerText = `Schedule for ${dateStr}`;
       document.getElementById("modal-day-subtitle").innerText = `${dayEvents.length} request(s) listed on this day.`;
+      
       const container = document.getElementById("modal-day-content");
       container.innerHTML = "";
+
       if (dayEvents.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No event requests scheduled for this date.</p>`;
       } else {
@@ -1036,6 +1266,7 @@
           const timeStr = evt.timeEnd ? `${evt.timeStart || evt.time} - ${evt.timeEnd}` : (evt.timeStart || evt.time);
           const prioInfo = PRIORITY_MAP[evt.priority || "MEDIUM"];
           const catInfo = CATEGORY_MAP[evt.category || "HYBRID"];
+
           item.innerHTML = `
             <div class="flex justify-between items-center flex-wrap gap-1">
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -1053,56 +1284,71 @@
           container.appendChild(item);
         });
       }
+
       document.getElementById("modal-day-details").classList.remove("hidden");
     }
+
     function closeDayModal() {
       document.getElementById("modal-day-details").classList.add("hidden");
     }
+
     function openDoneArchiveModal() {
       renderArchiveList();
       document.getElementById("modal-done-archive").classList.remove("hidden");
     }
+
     function closeDoneArchiveModal() {
       document.getElementById("modal-done-archive").classList.add("hidden");
     }
+
     function renderArchiveList() {
       const query = document.getElementById("archive-search-input").value.toLowerCase();
       const container = document.getElementById("archive-list-container");
       container.innerHTML = "";
+
       const doneEvents = eventsData
         .filter(e => e.completed)
         .filter(e => e.office.toLowerCase().includes(query) || e.title.toLowerCase().includes(query));
+
       document.getElementById("archive-total-text").innerText = `Total: ${doneEvents.length} completed events`;
+
       if (doneEvents.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No completed events found.</p>`;
         return;
       }
+
       doneEvents.forEach(evt => {
         const item = document.createElement("div");
         item.className = "p-3.5 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-1";
         item.innerHTML = `
           <div class="flex justify-between items-start">
-            <div>
+            <div class="overflow-hidden pr-2">
               <span class="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">COMPLETED</span>
-              <h4 class="font-bold text-xs text-slate-800 mt-1">${evt.title}</h4>
-              <p class="text-xs text-emerald-800 font-medium">${evt.office}</p>
+              <h4 class="font-bold text-xs text-slate-800 mt-1 truncate">${evt.title}</h4>
+              <p class="text-xs text-emerald-800 font-medium truncate">${evt.office}</p>
             </div>
-            <span class="text-xs text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">${evt.completedAt || evt.date}</span>
+            <span class="text-xs text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shrink-0">${evt.completedAt || evt.date}</span>
           </div>
-          <p class="text-xs text-slate-600 pt-1">📍 Venue: ${evt.venue}</p>
+          <p class="text-xs text-slate-600 pt-1 truncate">📍 Venue: ${evt.venue}</p>
         `;
         container.appendChild(item);
       });
     }
+
     function downloadReport(type) {
-      document.getElementById("dropdown-export").classList.add("hidden");
+      const dropExp = document.getElementById("dropdown-export");
+      if (dropExp) dropExp.classList.add("hidden");
+
       const activeEvents = eventsData
         .filter(e => !e.completed)
         .sort((a, b) => a.timestamp - b.timestamp);
+
       const tbody = document.getElementById("print-table-body");
       tbody.innerHTML = "";
+
       document.getElementById("print-report-type").innerText = type === 'WEEKLY' ? "Weekly Event Schedule Summary" : "Monthly Event Schedule Summary";
       document.getElementById("print-generated-date").innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
       if (activeEvents.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center border">No active requests found.</td></tr>`;
       } else {
@@ -1112,6 +1358,7 @@
           const timeStr = evt.timeEnd ? `${evt.timeStart || evt.time} - ${evt.timeEnd}` : (evt.timeStart || evt.time);
           const prioInfo = PRIORITY_MAP[evt.priority || "MEDIUM"];
           const catInfo = CATEGORY_MAP[evt.category || "HYBRID"];
+
           row.innerHTML = `
             <td class="p-2 border font-bold text-center">${idx + 1}</td>
             <td class="p-2 border">${catInfo.label}</td>
@@ -1127,8 +1374,10 @@
           tbody.appendChild(row);
         });
       }
+
       const element = document.getElementById("printable-area");
       element.style.display = "block";
+      
       const opt = {
         margin:       10,
         filename:     `Campus_Event_Schedule_Report_${type.toLowerCase()}.pdf`,
@@ -1136,6 +1385,7 @@
         html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
       };
+
       html2pdf().from(element).set(opt).save().then(() => {
         element.style.display = "none";
       });
